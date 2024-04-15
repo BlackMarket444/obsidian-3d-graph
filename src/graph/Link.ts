@@ -12,43 +12,30 @@ export class Link {
   }
 
   /**
-   * Creates a link index for an array of links
-   * @param links
-   * @returns
+   * Efficiently creates a link index for an array of links.
    */
   static createLinkIndex(links: Link[]): Map<string, Map<string, number>> {
     const linkIndex = new Map<string, Map<string, number>>();
-    links.forEach((link, index) => {
+    links.forEach(link => {
       if (!linkIndex.has(link.source.id)) {
         linkIndex.set(link.source.id, new Map<string, number>());
       }
-      linkIndex.get(link.source.id)?.set(link.target.id, index);
+      linkIndex.get(link.source.id).set(link.target.id, link.source.id);
     });
-
     return linkIndex;
   }
 
-  static checkLinksValid(links: Link[]) {
-    // if there are duplicate links, then throw an error
-    links.forEach((link, index) => {
-      links.forEach((link2, index2) => {
-        if (index !== index2 && Link.compare(link, link2)) {
-          throw new Error("graph duplicate links");
-        }
-      });
+  /**
+   * Checks for duplicate links using a set for O(n) complexity.
+   */
+  static checkLinksValid(links: Link[]): void {
+    const seenLinks = new Set<string>();
+    links.forEach(link => {
+      const linkKey = `${link.source.id}->${link.target.id}`;
+      if (seenLinks.has(linkKey)) {
+        throw new Error("Duplicate link found: " + linkKey);
+      }
+      seenLinks.add(linkKey);
     });
-  }
-
-  public static compare = (a: Link, b: Link) => {
-    return a.source.id === b.source.id && a.target.id === b.target.id;
-  };
-
-  public static createLinkMap(links: Link[]): { [x: string]: string[] } {
-    const linkMap: { [x: string]: string[] } = {};
-    links.forEach((link) => {
-      if (!linkMap[link.source.id]) linkMap[link.source.id] = [];
-      linkMap[link.source.id]?.push(link.target.id);
-    });
-    return linkMap;
   }
 }
