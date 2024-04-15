@@ -3,24 +3,22 @@ import type { Node } from "@/graph/Node";
 export class NodeGroup {
   query: string;
   color: string;
+  private regex: RegExp;
 
   constructor(query: string, color: string) {
     this.query = query;
     this.color = color;
+    this.regex = new RegExp(this.sanitizeQuery(query), 'i'); // Compiled once, case insensitive
   }
 
-  // TODO: this should match the Obsidian API result
-  static getRegex(query: string): RegExp {
-    return new RegExp(query);
+  // Method to check if the node matches the query
+  matches(node: Node): boolean {
+    return this.regex.test(node.path);
   }
 
-  static matches(query: string, node: Node): boolean {
-    return node.path.startsWith(this.sanitizeQuery(query));
-  }
-
-  static sanitizeQuery(query: string): string {
-    const trimmedQuery = query.trim();
-    if (trimmedQuery.startsWith("./")) return trimmedQuery.slice(1);
-    else return trimmedQuery;
+  // Cleans and prepares the query for use in regex
+  private sanitizeQuery(query: string): string {
+    return query.trim().replace(/^\.\//, '');
   }
 }
+
